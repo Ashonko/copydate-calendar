@@ -44,12 +44,6 @@ CopyDate Calendar was created to solve this exact problem by providing a beautif
 
 ## Installation
 
-### From Obsidian Community Plugins (Recommended)
-1. Open Obsidian Settings
-2. Navigate to Community Plugins
-3. Search for "CopyDate Calendar"
-4. Click Install and then Enable
-
 ### Manual Installation
 1. Download the latest release from GitHub
 2. Extract the files to your Obsidian plugins folder:
