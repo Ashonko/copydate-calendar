@@ -1,0 +1,275 @@
+/* CopyDate Calendar Plugin Styles - Sidebar View */
+
+.copydate-view {
+	padding: 16px;
+	height: 100%;
+	overflow-y: auto;
+}
+
+.copydate-title {
+	text-align: center;
+	margin: 0 0 16px 0;
+	font-size: 1.1em;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+/* Navigation */
+.copydate-nav {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+	padding: 0 4px;
+}
+
+.copydate-nav-btn {
+	background: var(--interactive-normal);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	color: var(--text-normal);
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: bold;
+	height: 28px;
+	width: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.2s ease;
+}
+
+.copydate-nav-btn:hover {
+	background: var(--interactive-hover);
+	color: var(--text-normal);
+}
+
+.copydate-nav-btn:active {
+	background: var(--interactive-active);
+}
+
+.copydate-month-year {
+	font-weight: 600;
+	font-size: 1em;
+	color: var(--text-normal);
+	text-align: center;
+	flex: 1;
+	margin: 0 8px;
+}
+
+/* Calendar Grid */
+.copydate-calendar {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	overflow: hidden;
+	background: var(--background-primary);
+	margin-bottom: 12px;
+}
+
+.copydate-day-headers {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	background: var(--background-secondary);
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.copydate-day-header {
+	padding: 6px 2px;
+	text-align: center;
+	font-weight: 600;
+	font-size: 0.75em;
+	color: var(--text-muted);
+	border-right: 1px solid var(--background-modifier-border);
+}
+
+.copydate-day-header:last-child {
+	border-right: none;
+}
+
+.copydate-days {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+}
+
+.copydate-day {
+	padding: 8px 4px;
+	text-align: center;
+	cursor: pointer;
+	border-right: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--background-modifier-border);
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: 0.8em;
+	transition: all 0.15s ease;
+	min-height: 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.copydate-day:nth-child(7n) {
+	border-right: none;
+}
+
+.copydate-day:hover {
+	background: var(--interactive-hover);
+	color: var(--text-normal);
+}
+
+.copydate-day:active {
+	background: var(--interactive-active);
+}
+
+.copydate-day-other-month {
+	color: var(--text-faint);
+	background: var(--background-secondary-alt);
+}
+
+.copydate-day-other-month:hover {
+	background: var(--interactive-hover);
+	color: var(--text-muted);
+}
+
+.copydate-day-today {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	font-weight: 600;
+}
+
+.copydate-day-today:hover {
+	background: var(--interactive-accent-hover);
+	color: var(--text-on-accent);
+}
+
+/* Today Button */
+.copydate-today-btn {
+	width: 100%;
+	padding: 8px;
+	background: var(--interactive-normal);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	color: var(--text-normal);
+	cursor: pointer;
+	font-size: 0.85em;
+	font-weight: 500;
+	transition: all 0.2s ease;
+	margin-bottom: 12px;
+}
+
+.copydate-today-btn:hover {
+	background: var(--interactive-hover);
+}
+
+.copydate-today-btn:active {
+	background: var(--interactive-active);
+}
+
+/* Format Display in Sidebar */
+.copydate-format-display {
+	padding: 8px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	font-size: 1.0em;
+}
+
+.copydate-format-label {
+	font-weight: 600;
+	color: var(--text-normal);
+	display: inline-block;
+	margin-right: 8px;
+}
+
+.copydate-format-value {
+	font-family: var(--font-monospace);
+	color: var(--text-muted);
+	display: inline-block;
+}
+
+.copydate-bold-status {
+	color: var(--text-muted);
+	margin-bottom: 6px;
+}
+
+.copydate-preview-small {
+	font-family: var(--font-monospace);
+	color: var(--text-normal);
+	font-size: 0.75em;
+	padding: 4px;
+	background: var(--background-primary-alt);
+	border-radius: 3px;
+}
+
+/* Settings Preview */
+.copydate-preview {
+	margin-top: 10px;
+	padding: 10px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+}
+
+.copydate-preview-text {
+	font-family: var(--font-monospace);
+	color: var(--text-normal);
+}
+
+.copydate-preview-error {
+	color: var(--text-error);
+	font-style: italic;
+}
+
+/* Ribbon Icon */
+.copydate-ribbon-class {
+	opacity: 0.8;
+	transition: opacity 0.2s ease;
+}
+
+.copydate-ribbon-class:hover {
+	opacity: 1;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+	.copydate-view {
+		padding: 12px;
+	}
+	
+	.copydate-day {
+		padding: 6px 2px;
+		font-size: 0.75em;
+		min-height: 14px;
+	}
+	
+	.copydate-nav {
+		margin-bottom: 10px;
+	}
+	
+	.copydate-title {
+		font-size: 1em;
+		margin-bottom: 12px;
+	}
+	
+	.copydate-format-display {
+		font-size: 0.75em;
+		padding: 6px;
+	}
+}
+
+/* Compact mode for very narrow sidebars */
+@media (max-width: 300px) {
+	.copydate-day {
+		padding: 4px 1px;
+		font-size: 0.7em;
+		min-height: 12px;
+	}
+	
+	.copydate-day-header {
+		padding: 4px 1px;
+		font-size: 0.7em;
+	}
+	
+	.copydate-month-year {
+		font-size: 0.9em;
+	}
+} 
