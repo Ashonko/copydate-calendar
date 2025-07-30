@@ -272,4 +272,19 @@
 	.copydate-month-year {
 		font-size: 0.9em;
 	}
+}
+
+/* Notice popup for error messages */
+.copydate-notice {
+	position: fixed;
+	top: 50px;
+	right: 20px;
+	background: var(--background-secondary);
+	color: var(--text-normal);
+	padding: 10px 15px;
+	border-radius: 4px;
+	border: 1px solid var(--background-modifier-border);
+	z-index: 1000;
+	font-size: 14px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 } 

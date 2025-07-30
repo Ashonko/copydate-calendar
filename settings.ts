@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, Setting, moment } from 'obsidian';
 import CopyDatePlugin from './main';
 
 export interface CopyDateSettings {
@@ -98,7 +98,6 @@ export class CopyDateSettingsTab extends PluginSettingTab {
 	private updatePreview(container: HTMLElement) {
 		container.empty();
 		const today = new Date();
-		const moment = (window as any).moment || require('moment');
 		
 		let format = this.plugin.settings.dateFormat;
 		if (format === 'custom') {
