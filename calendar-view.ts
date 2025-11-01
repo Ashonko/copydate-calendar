@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, moment, MarkdownView } from 'obsidian';
+import { ItemView, WorkspaceLeaf, moment, MarkdownView, Notice } from 'obsidian';
 import { CopyDateSettings } from './settings';
 
 export const CALENDAR_VIEW_TYPE = 'copydate-calendar-view';
@@ -44,7 +44,7 @@ export class CalendarView extends ItemView {
 		container.addClass('copydate-view');
 
 		// Title
-		const titleEl = container.createEl('div', { text: 'Select Date', cls: 'copydate-title' });
+		const titleEl = container.createEl('div', { text: 'Select date', cls: 'copydate-title' });
 
 		// Navigation header
 		const navEl = container.createEl('div', { cls: 'copydate-nav' });
@@ -172,12 +172,11 @@ export class CalendarView extends ItemView {
 	private insertDateAtCursor(formattedDate: string) {
 		const { workspace } = this.app;
 		
-		// Method 1: Try to get the currently active markdown view
-		const activeView = workspace.getActiveViewOfType(MarkdownView);
+		// Use the most recently active leaf
+		const leaf = workspace.getMostRecentLeaf();
 		
-		if (activeView && activeView.editor) {
-			// We have an active markdown view with an editor
-			const editor = activeView.editor;
+		if (leaf && leaf.view instanceof MarkdownView && leaf.view.editor) {
+			const editor = leaf.view.editor;
 			
 			// Insert the formatted date at cursor position
 			const cursor = editor.getCursor();
@@ -193,130 +192,11 @@ export class CalendarView extends ItemView {
 			// Focus back to editor
 			editor.focus();
 			
-			console.log('Date inserted successfully:', formattedDate);
-			return;
+			// Show notice instead of console.log
+			new Notice(`Date inserted: ${formattedDate}`);
+		} else {
+			// Show a notice to user
+			new Notice('Please open a note first to insert the date');
 		}
-
-		// Method 2: Use the active file to find the correct markdown view
-		const activeFile = workspace.getActiveFile();
-		if (activeFile) {
-			// Find the markdown view that corresponds to the active file
-			const markdownLeaves = workspace.getLeavesOfType('markdown');
-			
-			for (const leaf of markdownLeaves) {
-				const view = leaf.view as MarkdownView;
-				if (view && view.file === activeFile && view.editor) {
-					const editor = view.editor;
-					
-					// Insert the formatted date at cursor position
-					const cursor = editor.getCursor();
-					editor.replaceRange(formattedDate, cursor);
-					
-					// Move cursor to end of inserted text
-					const newCursor = {
-						line: cursor.line,
-						ch: cursor.ch + formattedDate.length
-					};
-					editor.setCursor(newCursor);
-					
-					// Focus back to the editor and make sure the leaf is active
-					workspace.setActiveLeaf(leaf);
-					editor.focus();
-					
-					console.log('Date inserted in active file view:', formattedDate);
-					return;
-				}
-			}
-		}
-
-		// Method 3: Fallback - find the most recently active markdown view
-		const markdownLeaves = workspace.getLeavesOfType('markdown');
-		
-		if (markdownLeaves.length > 0) {
-			// Use the active leaf from the workspace if it's a markdown leaf
-			const activeLeaf = workspace.activeLeaf;
-			if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
-				const view = activeLeaf.view as MarkdownView;
-				if (view.editor) {
-					const editor = view.editor;
-					
-					// Insert the formatted date at cursor position
-					const cursor = editor.getCursor();
-					editor.replaceRange(formattedDate, cursor);
-					
-					// Move cursor to end of inserted text
-					const newCursor = {
-						line: cursor.line,
-						ch: cursor.ch + formattedDate.length
-					};
-					editor.setCursor(newCursor);
-					
-					editor.focus();
-					
-					console.log('Date inserted in active leaf markdown view:', formattedDate);
-					return;
-				}
-			}
-			
-			// Last resort: get the first markdown view, but try to be smart about it
-			// Look for a view that seems to be in focus (has cursor position)
-			let bestLeaf = markdownLeaves[0];
-			
-			for (const leaf of markdownLeaves) {
-				const view = leaf.view as MarkdownView;
-				if (view && view.editor) {
-					// Check if this editor has focus or recent activity
-					try {
-						const editor = view.editor;
-						const cursor = editor.getCursor();
-						// If we can get cursor position, this editor is likely active
-						if (cursor) {
-							bestLeaf = leaf;
-							break;
-						}
-					} catch (e) {
-						// Continue to next leaf
-					}
-				}
-			}
-			
-			const view = bestLeaf.view as MarkdownView;
-			if (view && view.editor) {
-				const editor = view.editor;
-				
-				// Insert the formatted date at cursor position
-				const cursor = editor.getCursor();
-				editor.replaceRange(formattedDate, cursor);
-				
-				// Move cursor to end of inserted text
-				const newCursor = {
-					line: cursor.line,
-					ch: cursor.ch + formattedDate.length
-				};
-				editor.setCursor(newCursor);
-				
-				// Focus back to the editor and make sure the leaf is active
-				workspace.setActiveLeaf(bestLeaf);
-				editor.focus();
-				
-				console.log('Date inserted in best available markdown view:', formattedDate);
-				return;
-			}
-		}
-
-		// Last resort: show error message
-		console.warn('No active markdown view found. Please open a note first.');
-		
-		// Show a notice to user
-		const notice = document.createElement('div');
-		notice.textContent = 'Please open a note first to insert the date';
-		notice.className = 'copydate-notice';
-		document.body.appendChild(notice);
-		
-		setTimeout(() => {
-			if (notice.parentNode) {
-				notice.parentNode.removeChild(notice);
-			}
-		}, 3000);
 	}
-} 
+}

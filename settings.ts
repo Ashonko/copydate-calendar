@@ -36,10 +36,6 @@ export class CopyDateSettingsTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		new Setting(containerEl)
-			.setName('CopyDate Calendar Settings')
-			.setHeading();
-
 		// Date format setting
 		new Setting(containerEl)
 			.setName('Date format')
@@ -58,7 +54,7 @@ export class CopyDateSettingsTab extends PluginSettingTab {
 
 		// Custom format input (only show when custom is selected)
 		if (this.plugin.settings.dateFormat === 'custom') {
-			new Setting(containerEl)
+			const customFormatSetting = new Setting(containerEl)
 				.setName('Custom date format')
 				.setDesc('Use moment.js format tokens (e.g., YYYY-MM-DD, DD/MM/YY, etc.)')
 				.addText(text => text
@@ -67,7 +63,21 @@ export class CopyDateSettingsTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.customFormat = value;
 						await this.plugin.saveSettings();
+						// Update preview when custom format changes
+						const previewContainer = containerEl.querySelector('.copydate-preview') as HTMLElement;
+						if (previewContainer) {
+							this.updatePreview(previewContainer);
+						}
 					}));
+			
+			// Add a preview of the custom format
+			const formatPreview = containerEl.createEl('div', { 
+				cls: 'copydate-custom-format-preview',
+				text: `Preview: ${moment().format(this.plugin.settings.customFormat)}`
+			});
+			
+			// Update preview when custom format changes
+			customFormatSetting.controlEl.appendChild(formatPreview);
 		}
 
 		// Bold formatting toggle
@@ -87,10 +97,6 @@ export class CopyDateSettingsTab extends PluginSettingTab {
 				}));
 
 		// Preview section
-		new Setting(containerEl)
-			.setName('Preview')
-			.setHeading();
-
 		const previewContainer = containerEl.createDiv('copydate-preview');
 		this.updatePreview(previewContainer);
 	}
@@ -115,4 +121,4 @@ export class CopyDateSettingsTab extends PluginSettingTab {
 			previewEl.textContent = 'Invalid format';
 		}
 	}
-} 
+}

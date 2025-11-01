@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf, MarkdownView } from 'obsidian';
+import { Plugin, WorkspaceLeaf, MarkdownView, Notice, moment } from 'obsidian';
 import { CalendarView, CALENDAR_VIEW_TYPE } from './calendar-view';
 import { CopyDateSettings, CopyDateSettingsTab, DEFAULT_SETTINGS } from './settings';
 
@@ -15,10 +15,28 @@ export default class CopyDatePlugin extends Plugin {
 		);
 
 		// Add ribbon icon to activate view
-		const ribbonIconEl = this.addRibbonIcon('calendar-days', 'Open Calendar', (evt: MouseEvent) => {
+		const ribbonIconEl = this.addRibbonIcon('calendar-days', 'Open calendar', (evt: MouseEvent) => {
 			this.activateView();
 		});
 		ribbonIconEl.addClass('copydate-ribbon-class');
+
+		// Add command to open calendar
+		this.addCommand({
+			id: 'open-calendar',
+			name: 'Open calendar',
+			callback: () => {
+				this.activateView();
+			}
+		});
+
+		// Add command to insert today's date
+		this.addCommand({
+			id: 'insert-todays-date',
+			name: 'Insert today\'s date',
+			callback: () => {
+				this.insertTodaysDate();
+			}
+		});
 
 		// Add settings tab
 		this.addSettingTab(new CopyDateSettingsTab(this.app, this));
@@ -61,6 +79,48 @@ export default class CopyDatePlugin extends Plugin {
 		}
 	}
 
+	private async insertTodaysDate() {
+		const { workspace } = this.app;
+		
+		// Get the most recently active leaf
+		const leaf = workspace.getMostRecentLeaf();
+		
+		if (leaf && leaf.view instanceof MarkdownView && leaf.view.editor) {
+			const editor = leaf.view.editor;
+			
+			// Format today's date according to settings
+			let format = this.settings.dateFormat;
+			if (format === 'custom') {
+				format = this.settings.customFormat;
+			}
+			
+			try {
+				const today = moment();
+				const formattedDate = today.format(format);
+				const finalText = this.settings.useBoldFormatting ? `**${formattedDate}**` : formattedDate;
+				
+				// Insert the formatted date at cursor position
+				const cursor = editor.getCursor();
+				editor.replaceRange(finalText, cursor);
+				
+				// Move cursor to end of inserted text
+				const newCursor = {
+					line: cursor.line,
+					ch: cursor.ch + finalText.length
+				};
+				editor.setCursor(newCursor);
+				
+				// Focus back to editor
+				editor.focus();
+			} catch (error) {
+				console.error('Error formatting date:', error);
+				new Notice('Error inserting date. Please check your date format settings.');
+			}
+		} else {
+			new Notice('Please open a note first to insert the date.');
+		}
+	}
+
 	private updateAllCalendarViews() {
 		const { workspace } = this.app;
 		const leaves = workspace.getLeavesOfType(CALENDAR_VIEW_TYPE);
@@ -72,4 +132,4 @@ export default class CopyDatePlugin extends Plugin {
 			}
 		});
 	}
-} 
+}

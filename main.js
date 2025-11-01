@@ -60,7 +60,7 @@ var CalendarView = class extends import_obsidian.ItemView {
     const container = this.contentEl;
     container.empty();
     container.addClass("copydate-view");
-    const titleEl = container.createEl("div", { text: "Select Date", cls: "copydate-title" });
+    const titleEl = container.createEl("div", { text: "Select date", cls: "copydate-title" });
     const navEl = container.createEl("div", { cls: "copydate-nav" });
     const prevButton = navEl.createEl("button", { text: "\u2039", cls: "copydate-nav-btn" });
     prevButton.addEventListener("click", () => {
@@ -152,9 +152,9 @@ var CalendarView = class extends import_obsidian.ItemView {
   }
   insertDateAtCursor(formattedDate) {
     const { workspace } = this.app;
-    const activeView = workspace.getActiveViewOfType(import_obsidian.MarkdownView);
-    if (activeView && activeView.editor) {
-      const editor = activeView.editor;
+    const leaf = workspace.getMostRecentLeaf();
+    if (leaf && leaf.view instanceof import_obsidian.MarkdownView && leaf.view.editor) {
+      const editor = leaf.view.editor;
       const cursor = editor.getCursor();
       editor.replaceRange(formattedDate, cursor);
       const newCursor = {
@@ -163,90 +163,10 @@ var CalendarView = class extends import_obsidian.ItemView {
       };
       editor.setCursor(newCursor);
       editor.focus();
-      console.log("Date inserted successfully:", formattedDate);
-      return;
+      new import_obsidian.Notice(`Date inserted: ${formattedDate}`);
+    } else {
+      new import_obsidian.Notice("Please open a note first to insert the date");
     }
-    const activeFile = workspace.getActiveFile();
-    if (activeFile) {
-      const markdownLeaves2 = workspace.getLeavesOfType("markdown");
-      for (const leaf of markdownLeaves2) {
-        const view = leaf.view;
-        if (view && view.file === activeFile && view.editor) {
-          const editor = view.editor;
-          const cursor = editor.getCursor();
-          editor.replaceRange(formattedDate, cursor);
-          const newCursor = {
-            line: cursor.line,
-            ch: cursor.ch + formattedDate.length
-          };
-          editor.setCursor(newCursor);
-          workspace.setActiveLeaf(leaf);
-          editor.focus();
-          console.log("Date inserted in active file view:", formattedDate);
-          return;
-        }
-      }
-    }
-    const markdownLeaves = workspace.getLeavesOfType("markdown");
-    if (markdownLeaves.length > 0) {
-      const activeLeaf = workspace.activeLeaf;
-      if (activeLeaf && activeLeaf.view instanceof import_obsidian.MarkdownView) {
-        const view2 = activeLeaf.view;
-        if (view2.editor) {
-          const editor = view2.editor;
-          const cursor = editor.getCursor();
-          editor.replaceRange(formattedDate, cursor);
-          const newCursor = {
-            line: cursor.line,
-            ch: cursor.ch + formattedDate.length
-          };
-          editor.setCursor(newCursor);
-          editor.focus();
-          console.log("Date inserted in active leaf markdown view:", formattedDate);
-          return;
-        }
-      }
-      let bestLeaf = markdownLeaves[0];
-      for (const leaf of markdownLeaves) {
-        const view2 = leaf.view;
-        if (view2 && view2.editor) {
-          try {
-            const editor = view2.editor;
-            const cursor = editor.getCursor();
-            if (cursor) {
-              bestLeaf = leaf;
-              break;
-            }
-          } catch (e) {
-          }
-        }
-      }
-      const view = bestLeaf.view;
-      if (view && view.editor) {
-        const editor = view.editor;
-        const cursor = editor.getCursor();
-        editor.replaceRange(formattedDate, cursor);
-        const newCursor = {
-          line: cursor.line,
-          ch: cursor.ch + formattedDate.length
-        };
-        editor.setCursor(newCursor);
-        workspace.setActiveLeaf(bestLeaf);
-        editor.focus();
-        console.log("Date inserted in best available markdown view:", formattedDate);
-        return;
-      }
-    }
-    console.warn("No active markdown view found. Please open a note first.");
-    const notice = document.createElement("div");
-    notice.textContent = "Please open a note first to insert the date";
-    notice.className = "copydate-notice";
-    document.body.appendChild(notice);
-    setTimeout(() => {
-      if (notice.parentNode) {
-        notice.parentNode.removeChild(notice);
-      }
-    }, 3e3);
   }
 };
 
@@ -274,7 +194,6 @@ var CopyDateSettingsTab = class extends import_obsidian2.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian2.Setting(containerEl).setName("CopyDate Calendar Settings").setHeading();
     new import_obsidian2.Setting(containerEl).setName("Date format").setDesc("Choose how dates should be formatted when inserted").addDropdown((dropdown) => {
       DATE_FORMAT_OPTIONS.forEach((option) => {
         dropdown.addOption(option.value, option.label);
@@ -287,10 +206,19 @@ var CopyDateSettingsTab = class extends import_obsidian2.PluginSettingTab {
       });
     });
     if (this.plugin.settings.dateFormat === "custom") {
-      new import_obsidian2.Setting(containerEl).setName("Custom date format").setDesc("Use moment.js format tokens (e.g., YYYY-MM-DD, DD/MM/YY, etc.)").addText((text) => text.setPlaceholder("YYYY-MM-DD").setValue(this.plugin.settings.customFormat).onChange(async (value) => {
+      const customFormatSetting = new import_obsidian2.Setting(containerEl).setName("Custom date format").setDesc("Use moment.js format tokens (e.g., YYYY-MM-DD, DD/MM/YY, etc.)").addText((text) => text.setPlaceholder("YYYY-MM-DD").setValue(this.plugin.settings.customFormat).onChange(async (value) => {
         this.plugin.settings.customFormat = value;
         await this.plugin.saveSettings();
+        const previewContainer2 = containerEl.querySelector(".copydate-preview");
+        if (previewContainer2) {
+          this.updatePreview(previewContainer2);
+        }
       }));
+      const formatPreview = containerEl.createEl("div", {
+        cls: "copydate-custom-format-preview",
+        text: `Preview: ${(0, import_obsidian2.moment)().format(this.plugin.settings.customFormat)}`
+      });
+      customFormatSetting.controlEl.appendChild(formatPreview);
     }
     new import_obsidian2.Setting(containerEl).setName("Bold formatting").setDesc("Wrap inserted dates with ** to make them bold").addToggle((toggle) => toggle.setValue(this.plugin.settings.useBoldFormatting).onChange(async (value) => {
       this.plugin.settings.useBoldFormatting = value;
@@ -300,7 +228,6 @@ var CopyDateSettingsTab = class extends import_obsidian2.PluginSettingTab {
         this.updatePreview(previewContainer2);
       }
     }));
-    new import_obsidian2.Setting(containerEl).setName("Preview").setHeading();
     const previewContainer = containerEl.createDiv("copydate-preview");
     this.updatePreview(previewContainer);
   }
@@ -331,10 +258,24 @@ var CopyDatePlugin = class extends import_obsidian3.Plugin {
       CALENDAR_VIEW_TYPE,
       (leaf) => new CalendarView(leaf, this.settings)
     );
-    const ribbonIconEl = this.addRibbonIcon("calendar-days", "Open Calendar", (evt) => {
+    const ribbonIconEl = this.addRibbonIcon("calendar-days", "Open calendar", (evt) => {
       this.activateView();
     });
     ribbonIconEl.addClass("copydate-ribbon-class");
+    this.addCommand({
+      id: "open-calendar",
+      name: "Open calendar",
+      callback: () => {
+        this.activateView();
+      }
+    });
+    this.addCommand({
+      id: "insert-todays-date",
+      name: "Insert today's date",
+      callback: () => {
+        this.insertTodaysDate();
+      }
+    });
     this.addSettingTab(new CopyDateSettingsTab(this.app, this));
   }
   onunload() {
@@ -360,6 +301,35 @@ var CopyDatePlugin = class extends import_obsidian3.Plugin {
     }
     if (leaf) {
       workspace.revealLeaf(leaf);
+    }
+  }
+  async insertTodaysDate() {
+    const { workspace } = this.app;
+    const leaf = workspace.getMostRecentLeaf();
+    if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.editor) {
+      const editor = leaf.view.editor;
+      let format = this.settings.dateFormat;
+      if (format === "custom") {
+        format = this.settings.customFormat;
+      }
+      try {
+        const today = (0, import_obsidian3.moment)();
+        const formattedDate = today.format(format);
+        const finalText = this.settings.useBoldFormatting ? `**${formattedDate}**` : formattedDate;
+        const cursor = editor.getCursor();
+        editor.replaceRange(finalText, cursor);
+        const newCursor = {
+          line: cursor.line,
+          ch: cursor.ch + finalText.length
+        };
+        editor.setCursor(newCursor);
+        editor.focus();
+      } catch (error) {
+        console.error("Error formatting date:", error);
+        new import_obsidian3.Notice("Error inserting date. Please check your date format settings.");
+      }
+    } else {
+      new import_obsidian3.Notice("Please open a note first to insert the date.");
     }
   }
   updateAllCalendarViews() {

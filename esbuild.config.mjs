@@ -37,7 +37,7 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : 'inline',
 	treeShaking: true,
-	outfile: 'main.js',
+	outfile: 'copydate-calendar/main.js',
 });
 
 if (prod) {
@@ -45,4 +45,4 @@ if (prod) {
 	process.exit(0);
 } else {
 	await context.watch();
-} 
+}
